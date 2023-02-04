@@ -6,19 +6,19 @@ import org.hibernate.validator.constraints.CreditCardNumber;
 
 import com.desafio.api.utils.MetodoPagamento;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
-
 import jakarta.validation.constraints.NotNull;
 
 public record PagamentoDTO(
-        @NotNull int codigoDebito,
+                @NotBlank(message = "Cógido débito não pode ser vazio") @NotNull(message = "Cógido débito não pode ser nulo") Integer codigoDebito,
 
-        @NotBlank String cpfCnpjPagador,
+                @NotBlank(message = "CPF/CNPJ não pode ser vazio") @NotNull(message = "Cógido débito não pode ser nulo") String cpfCnpjPagador,
 
-        @NotNull MetodoPagamento metodoPagamento,
+                @Valid @NotNull(message = "Método pagamento não pode ser nulo") MetodoPagamento metodoPagamento,
 
-        Optional<@CreditCardNumber String> numeroCartao,
+                Optional<@CreditCardNumber @NotNull String> numeroCartao,
 
-        @NotNull double valorPagamento) {
+                @NotBlank(message = "Valor pagamento não pode ser vazio") @NotNull(message = "Valor Pagamento não pode ser nulo") Double valorPagamento) {
 
 }
