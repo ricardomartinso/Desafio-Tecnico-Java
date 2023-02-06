@@ -38,7 +38,7 @@ public class ProcessamentoService {
             if (statusDiferentePendente) {
                 pagamento.setStatus(status);
 
-                pagamentoRepository.save(pagamento);
+                return pagamentoRepository.save(pagamento);
             }
 
             throw new ApiExceptionMessage(HttpStatus.BAD_REQUEST,
