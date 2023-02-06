@@ -1,4 +1,4 @@
-# API JAVA PARA RECEBIMENTO DE PAGAMENTOS DE PESSOAS FÍSICAS E JURÍDICAS.
+# Pagamentos-API
 
 Um projeto de desafio técnico proposto para criação de uma  API para possibilitar o recebimento de pagamentos de débitos de pessoas físicas e jurídicas.
 
