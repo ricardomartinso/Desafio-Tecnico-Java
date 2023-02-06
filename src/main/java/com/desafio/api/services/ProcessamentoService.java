@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import com.desafio.api.config.exception.ControllersException;
+import com.desafio.api.config.exception.ApiExceptionMessage;
 import com.desafio.api.model.Pagamento;
 import com.desafio.api.repository.*;
 
@@ -14,7 +14,7 @@ public class ProcessamentoService {
     @Autowired
     PagamentoRepository pagamentoRepository;
 
-    public Pagamento atualizar(Long pagamentoId, String status) throws ControllersException {
+    public Pagamento atualizar(Long pagamentoId, String status) throws ApiExceptionMessage {
         Pagamento pagamento = pagamentoRepository.findById(pagamentoId).orElse(null);
 
         boolean statusDiferentePendente = !status.equals("pendente");
@@ -28,7 +28,8 @@ public class ProcessamentoService {
         String pagamentoStatus = pagamento.getStatus();
 
         if (statusDiferenteSucesso && statusDiferenteFalha && statusDiferentePendente) {
-            throw new ControllersException(HttpStatus.BAD_REQUEST, "processamento não aceita este tipo de valor");
+            throw new ApiExceptionMessage(HttpStatus.BAD_REQUEST,
+                    "Status não aceita este tipo de valor, só aceita sucesso, falha ou pendente");
 
         }
 
@@ -38,12 +39,12 @@ public class ProcessamentoService {
             pagamentoRepository.save(pagamento);
 
         } else if (pagamentoStatus.equals("sucesso")) {
-            throw new ControllersException(HttpStatus.BAD_REQUEST, "Pagamento já aprovado não pode ser alterado!");
+            throw new ApiExceptionMessage(HttpStatus.BAD_REQUEST, "Pagamento já aprovado não pode ser alterado!");
 
         } else if (pagamentoStatus.equals("falha")) {
 
             if (statusDiferentePendente) {
-                throw new ControllersException(HttpStatus.BAD_REQUEST,
+                throw new ApiExceptionMessage(HttpStatus.BAD_REQUEST,
                         "Não pode ser alterado para outro valor além de pendente");
 
             }
