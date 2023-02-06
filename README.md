@@ -21,7 +21,7 @@ Um projeto de desafio técnico proposto para criação de uma  API para possibil
 
 # Descrição
 
-Pagamentos-API simula uma API que possibilita o recebimento de pagamentos de débitos de pessoas físicas e jurídicas.
+Pagamentos-API simula uma REST API que possibilita o recebimento de pagamentos de débitos de pessoas físicas e jurídicas, utilizando Java 17, Spring Boot, H2 Database, Validações com Jakarta Validation.
 
 </br>
 
