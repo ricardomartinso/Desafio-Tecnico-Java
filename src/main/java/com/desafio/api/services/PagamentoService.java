@@ -76,16 +76,21 @@ public class PagamentoService {
         return pagamentoRepository.findByStatus(status);
     }
 
-    public Pagamento deletarPagamentoPorId(Long id) {
+    public Pagamento deletarPagamentoPorId(Long id) throws ApiExceptionMessage {
 
         Pagamento pagamento = pagamentoRepository.findById(id).orElse(null);
 
         if (pagamento == null) {
-            return null;
+            throw new ApiExceptionMessage(HttpStatus.BAD_REQUEST, "ID do pagamento não encontrado");
+        }
+
+        if (!pagamento.getStatus().equals("pendente")) {
+            throw new ApiExceptionMessage(HttpStatus.BAD_REQUEST, "Apenas pagamentos pendentes podem ser deletados.");
         }
 
         pagamentoRepository.deleteById(id);
 
         return pagamento;
+
     }
 }

@@ -96,17 +96,17 @@ public class PagamentoController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Object> deletarPagamento(@PathVariable Long id) {
 
-        Pagamento pagamento = pagamentoService.deletarPagamentoPorId(id);
+        try {
+            Pagamento pagamento = pagamentoService.deletarPagamentoPorId(id);
 
-        if (pagamento == null) {
+            return ResponseHandler.responseBuilder("Pagamento deletado com sucesso!", HttpStatus.OK, pagamento);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Map<String, String> error = new HashMap<>();
 
-            Map<String, String> response = new HashMap<>();
-            response.put("error", "ID do pagamento não existe!");
-
-            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+            error.put("error", e.getMessage());
+            return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
         }
-
-        return ResponseHandler.responseBuilder("Pagamento deletado com sucesso!", HttpStatus.OK, pagamento);
 
     }
 }
