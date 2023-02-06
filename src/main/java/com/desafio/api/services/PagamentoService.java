@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import com.desafio.api.config.exception.ControllersException;
+import com.desafio.api.config.exception.*;
 import com.desafio.api.dto.*;
 import com.desafio.api.model.Pagamento;
 import com.desafio.api.repository.*;
@@ -18,7 +18,7 @@ public class PagamentoService {
     @Autowired
     private PagamentoRepository pagamentoRepository;
 
-    public Pagamento salvar(PagamentoDTO req) throws ControllersException {
+    public Pagamento salvar(PagamentoDTO req) throws ApiExceptionMessage {
 
         MetodoPagamento metodoPagamento = req.metodoPagamento();
         String cpf = null;
@@ -29,7 +29,7 @@ public class PagamentoService {
         } else if (req.cpfCnpjPagador().length() == 14) {
             cnpj = req.cpfCnpjPagador();
         } else {
-            throw new ControllersException(HttpStatus.BAD_REQUEST, "CPF/CNPJ inválidos!");
+            throw new ApiExceptionMessage(HttpStatus.BAD_REQUEST, "CPF/CNPJ inválidos!");
         }
 
         if ((metodoPagamento == MetodoPagamento.BOLETO || metodoPagamento == MetodoPagamento.PIX)) {
@@ -38,13 +38,12 @@ public class PagamentoService {
 
             }
 
-            throw new ControllersException(HttpStatus.BAD_REQUEST,
+            throw new ApiExceptionMessage(HttpStatus.BAD_REQUEST,
                     "Número de cartão inválido com esse meio de pagamento");
 
         } else {
             if (req.numeroCartao().isEmpty()) {
-                throw new ControllersException(HttpStatus.BAD_REQUEST,
-                        "Número de cartão faltando");
+                throw new ApiExceptionMessage(HttpStatus.BAD_REQUEST, "Número de cartão faltando");
 
             }
             return pagamentoRepository.save(new Pagamento(req, cpf, cnpj));
