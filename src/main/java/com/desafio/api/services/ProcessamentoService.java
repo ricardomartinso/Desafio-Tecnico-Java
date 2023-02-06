@@ -33,10 +33,16 @@ public class ProcessamentoService {
 
         }
 
-        if (pagamentoStatus.equals("pendente") && statusDiferentePendente) {
-            pagamento.setStatus(status);
+        if (pagamentoStatus.equals("pendente")) {
 
-            pagamentoRepository.save(pagamento);
+            if (statusDiferentePendente) {
+                pagamento.setStatus(status);
+
+                pagamentoRepository.save(pagamento);
+            }
+
+            throw new ApiExceptionMessage(HttpStatus.BAD_REQUEST,
+                    "Pagamento pendente não pode ser alterado para pendente!");
 
         } else if (pagamentoStatus.equals("sucesso")) {
             throw new ApiExceptionMessage(HttpStatus.BAD_REQUEST, "Pagamento já aprovado não pode ser alterado!");
