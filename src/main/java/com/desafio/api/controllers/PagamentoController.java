@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.desafio.api.config.exception.ControllersException;
+import com.desafio.api.config.exception.*;
 import com.desafio.api.config.response.ResponseHandler;
 import com.desafio.api.dto.PagamentoDTO;
 import com.desafio.api.services.*;
@@ -40,36 +40,55 @@ public class PagamentoController {
     }
 
     @GetMapping("/codigo-debito/{codigoDebito}")
-    public List<Pagamento> listarPagamentosPorCodigoDebito(@PathVariable int codigoDebito) {
+    public ResponseEntity<Object> listarPagamentosPorCodigoDebito(@PathVariable int codigoDebito) {
 
-        return pagamentoService.listarPorCodigoDebito(codigoDebito);
+        List<Pagamento> pagamentos = pagamentoService.listarPorCodigoDebito(codigoDebito);
+
+        return ResponseHandler.responseBuilder("Pagamentos por código débito filtrados com sucesso", HttpStatus.OK,
+                pagamentos);
 
     }
 
     @GetMapping("/cpf-cnpj/{cpfCnpj}")
-    public List<Pagamento> listarPagamentosPorCpfCnpj(@PathVariable String cpfCnpj) {
+    public ResponseEntity<Object> listarPagamentosPorCpfCnpj(@PathVariable String cpfCnpj) throws Exception {
+        List<Pagamento> pagamentos = pagamentoService.listarPorCpfCnpj(cpfCnpj);
 
-        return pagamentoService.listarPorCpfCnpj(cpfCnpj);
+        if (pagamentos == null) {
 
+            Map<String, String> response = new HashMap<>();
+            response.put("error", "CPF/CNPJ inválido!");
+
+            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        }
+
+        return ResponseHandler.responseBuilder("Pagamentos por CPF/CNPJ filtrados com sucesso", HttpStatus.OK,
+                pagamentos);
     }
 
     @GetMapping("/status/{status}")
-    public List<Pagamento> listarPagamentosPorStatus(@PathVariable String status) {
+    public ResponseEntity<Object> listarPagamentosPorStatus(@PathVariable String status) {
 
-        return pagamentoService.listarPorStatus(status);
+        List<Pagamento> pagamentos = pagamentoService.listarPorStatus(status);
 
+        return ResponseHandler.responseBuilder("Pagamentos por status filtrados com sucesso", HttpStatus.OK,
+                pagamentos);
     }
 
     @PostMapping()
-    public ResponseEntity<Object> criarPagamento(@RequestBody @Valid PagamentoDTO req) throws ControllersException {
+    public ResponseEntity<Object> criarPagamento(@RequestBody @Valid PagamentoDTO req) {
 
         try {
             Pagamento pagamento = pagamentoService.salvar(req);
 
             return ResponseHandler.responseBuilder("Pagamento criado com sucesso!", HttpStatus.CREATED, pagamento);
-        } catch (Exception e) {
+        } catch (ApiExceptionMessage e) {
+
             e.printStackTrace();
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+
+            Map<String, String> error = new HashMap<>();
+            error.put("error", e.getMessage());
+
+            return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
         }
 
     }
@@ -77,22 +96,17 @@ public class PagamentoController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Object> deletarPagamento(@PathVariable Long id) {
 
-        try {
-            Pagamento pagamento = pagamentoService.deletarPagamentoPorId(id);
+        Pagamento pagamento = pagamentoService.deletarPagamentoPorId(id);
+
+        if (pagamento == null) {
 
             Map<String, String> response = new HashMap<>();
+            response.put("error", "ID do pagamento não existe!");
 
-            if (pagamento == null) {
-                response.put("error", "Id do pagamento não existe!");
-
-                return new ResponseEntity(response, HttpStatus.NOT_FOUND);
-            }
-
-            return ResponseHandler.responseBuilder("Pagamento deletado com sucesso!", HttpStatus.OK, pagamento);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
         }
+
+        return ResponseHandler.responseBuilder("Pagamento deletado com sucesso!", HttpStatus.OK, pagamento);
 
     }
 }
