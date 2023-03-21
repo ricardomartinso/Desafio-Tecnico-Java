@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import com.desafio.api.config.exception.ApiExceptionMessage;
 import com.desafio.api.model.Pagamento;
 import com.desafio.api.repository.*;
+import com.desafio.api.utils.StatusPagamento;
 
 @Service
 public class ProcessamentoService {
@@ -14,47 +15,32 @@ public class ProcessamentoService {
     @Autowired
     PagamentoRepository pagamentoRepository;
 
-    public Pagamento atualizar(Long pagamentoId, String status) throws ApiExceptionMessage {
+    public Pagamento atualizar(Long pagamentoId, StatusPagamento statusNovo) throws ApiExceptionMessage {
         Pagamento pagamento = pagamentoRepository.findById(pagamentoId).orElse(null);
+        StatusPagamento statusAtual = pagamento.getStatus();
 
-        boolean statusDiferentePendente = !status.equals("pendente");
-        boolean statusDiferenteSucesso = !status.equals("sucesso");
-        boolean statusDiferenteFalha = !status.equals("falha");
-
-        if (pagamento == null) {
-            return null;
-        }
-
-        String pagamentoStatus = pagamento.getStatus();
-
-        if (statusDiferenteSucesso && statusDiferenteFalha && statusDiferentePendente) {
-            throw new ApiExceptionMessage(HttpStatus.BAD_REQUEST,
-                    "Status não aceita este tipo de valor, só aceita sucesso, falha ou pendente");
-
-        }
-
-        if (pagamentoStatus.equals("pendente")) {
-
-            if (statusDiferentePendente) {
-                pagamento.setStatus(status);
-
-                return pagamentoRepository.save(pagamento);
-            }
-
-            throw new ApiExceptionMessage(HttpStatus.BAD_REQUEST,
-                    "Pagamento pendente não pode ser alterado para pendente!");
-
-        } else if (pagamentoStatus.equals("sucesso")) {
+        if (statusAtual == StatusPagamento.sucesso) {
             throw new ApiExceptionMessage(HttpStatus.BAD_REQUEST, "Pagamento já aprovado não pode ser alterado!");
 
-        } else if (pagamentoStatus.equals("falha")) {
+        } else if (statusAtual == StatusPagamento.pendente) {
 
-            if (statusDiferentePendente) {
+            if (statusNovo == StatusPagamento.pendente) {
+                throw new ApiExceptionMessage(HttpStatus.BAD_REQUEST,
+                        "Pagamento pendente não pode ser alterado para pendente!");
+            }
+
+            pagamento.setStatus(statusNovo);
+
+            return pagamentoRepository.save(pagamento);
+
+        } else if (statusAtual == StatusPagamento.falha) {
+
+            if (statusNovo != StatusPagamento.pendente) {
                 throw new ApiExceptionMessage(HttpStatus.BAD_REQUEST,
                         "Não pode ser alterado para outro valor além de pendente");
 
             }
-            pagamento.setStatus(status);
+            pagamento.setStatus(statusNovo);
             pagamentoRepository.save(pagamento);
         }
 
