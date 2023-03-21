@@ -1,6 +1,7 @@
 package com.desafio.api.model;
 
 import com.desafio.api.dto.PagamentoDTO;
+import com.desafio.api.utils.StatusPagamento;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -24,7 +25,7 @@ public class Pagamento {
         this.metodoPagamento = pagamentoDTO.metodoPagamento().toString();
         this.numeroCartao = pagamentoDTO.numeroCartao().orElse(null);
         this.valorPagamento = pagamentoDTO.valorPagamento();
-        this.status = "pendente";
+        this.status = StatusPagamento.pendente;
     }
 
     @Id
@@ -50,6 +51,6 @@ public class Pagamento {
     double valorPagamento;
 
     @Column(length = 50, nullable = false)
-    String status;
+    StatusPagamento status;
 
 }
