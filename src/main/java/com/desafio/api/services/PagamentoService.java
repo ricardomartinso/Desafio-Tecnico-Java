@@ -7,8 +7,14 @@ import org.springframework.stereotype.Service;
 import com.desafio.api.config.exception.*;
 import com.desafio.api.dto.*;
 import com.desafio.api.model.Pagamento;
+import com.desafio.api.model.PagamentoBoletoStrategy;
+import com.desafio.api.model.PagamentoCartaoCreditoStrategy;
+import com.desafio.api.model.PagamentoCartaoDebitoStrategy;
+import com.desafio.api.model.PagamentoPixStrategy;
+import com.desafio.api.model.PagamentoStrategy;
 import com.desafio.api.repository.*;
 import com.desafio.api.utils.MetodoPagamento;
+import com.desafio.api.utils.ValidadorCpfCnpj;
 
 import java.util.*;
 
@@ -19,36 +25,28 @@ public class PagamentoService {
     private PagamentoRepository pagamentoRepository;
 
     public Pagamento salvar(PagamentoDTO req) throws ApiExceptionMessage {
+        String cpf = new ValidadorCpfCnpj().verificaSeCpf(req.cpfCnpjPagador());
+        String cnpj = new ValidadorCpfCnpj().verificaSeCnpj(req.cpfCnpjPagador());
 
         MetodoPagamento metodoPagamento = req.metodoPagamento();
-        String cpf = null;
-        String cnpj = null;
 
-        if (req.cpfCnpjPagador().length() == 11) {
-            cpf = req.cpfCnpjPagador();
-        } else if (req.cpfCnpjPagador().length() == 14) {
-            cnpj = req.cpfCnpjPagador();
-        } else {
+        EnumMap<MetodoPagamento, PagamentoStrategy> mapStrategy = new EnumMap(MetodoPagamento.class);
+        mapStrategy.put(MetodoPagamento.BOLETO, new PagamentoBoletoStrategy());
+        mapStrategy.put(MetodoPagamento.CARTAO_CREDITO, new PagamentoCartaoCreditoStrategy());
+        mapStrategy.put(MetodoPagamento.CARTAO_DEBITO, new PagamentoCartaoDebitoStrategy());
+        mapStrategy.put(MetodoPagamento.PIX, new PagamentoPixStrategy());
+
+        PagamentoStrategy pagamentoStrategy = mapStrategy.get(metodoPagamento);
+
+        if (pagamentoStrategy == null) {
+            throw new ApiExceptionMessage(HttpStatus.BAD_REQUEST, "Forma de pagamento inválida!");
+        }
+
+        if (cpf == null && cnpj == null) {
             throw new ApiExceptionMessage(HttpStatus.BAD_REQUEST, "CPF/CNPJ inválidos!");
         }
 
-        if ((metodoPagamento == MetodoPagamento.BOLETO || metodoPagamento == MetodoPagamento.PIX)) {
-            if (req.numeroCartao().isEmpty()) {
-                return pagamentoRepository.save(new Pagamento(req, cpf, cnpj));
-
-            }
-
-            throw new ApiExceptionMessage(HttpStatus.BAD_REQUEST,
-                    "Número de cartão inválido com esse meio de pagamento");
-
-        } else {
-            if (req.numeroCartao().isEmpty()) {
-                throw new ApiExceptionMessage(HttpStatus.BAD_REQUEST, "Número de cartão faltando");
-
-            }
-            return pagamentoRepository.save(new Pagamento(req, cpf, cnpj));
-
-        }
+        return pagamentoStrategy.realizarPagamento(req, cpf, cnpj, pagamentoRepository);
 
     }
 
