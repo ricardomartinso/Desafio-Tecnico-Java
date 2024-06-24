@@ -6,18 +6,14 @@ import org.springframework.http.HttpStatus;
 import com.desafio.api.config.exception.ApiExceptionMessage;
 import com.desafio.api.dto.PagamentoDTO;
 import com.desafio.api.repository.PagamentoRepository;
-import com.desafio.api.utils.ValidadorNumeroCartaoImpl;
 
 public class PagamentoCartaoDebitoStrategy implements PagamentoStrategy {
 
-    @Autowired
-    ValidadorNumeroCartaoImpl validadorNumeroCartao;
 
     public Pagamento realizarPagamento(PagamentoDTO pagamentoDTO, String cpf, String cnpj,
             PagamentoRepository pagamentoRepository) throws ApiExceptionMessage {
-        boolean validadorCartao = validadorNumeroCartao.validaNumeroCartao(pagamentoDTO.numeroCartao().orElse(""));
 
-        if (!validadorCartao) {
+        if (pagamentoDTO.numeroCartao().isPresent() && pagamentoDTO.numeroCartao().get().length() != 16) {
             throw new ApiExceptionMessage(HttpStatus.BAD_REQUEST,
                     "Número de cartão inválido, por favor reveja os itens e tente novamente");
         }
